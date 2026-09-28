@@ -1,0 +1,4 @@
+node_modules/
+evalkit-runs/
+*.log
+.DS_Store

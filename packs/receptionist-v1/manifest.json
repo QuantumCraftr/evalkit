@@ -1,0 +1,8 @@
+{
+  "name": "receptionist",
+  "version": "v1",
+  "title": "AI receptionist: does it follow the rules?",
+  "description": "Synthetic caller turns for a generic service business (a garage-style workshop). Each item asks the assistant to answer a call, and checks the guardrails a receptionist must not break: no invented prices, no promised slot before confirmation, a callback offer when unsure, and a structured summary. The transcripts are fabricated for this pack, not real customer calls.",
+  "dataset": "dataset.jsonl",
+  "scoring": "all_checks"
+}
