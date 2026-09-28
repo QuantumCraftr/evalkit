@@ -14,6 +14,11 @@ npx evalkit run packs/receptionist-v1 --model qwen3 --base-url http://127.0.0.1:
 That writes `evalkit-runs/<pack>-<timestamp>.json` and `.md`. **Nothing is
 uploaded.** The run stays on your machine until you choose to share it.
 
+Browse the runs with `npx evalkit view`: a local page (binding `127.0.0.1` only)
+that shows the full run settings, a performance block (median latency, decode
+rate, tokens), the results by group and by check, every item with its checks and
+its meter, and the model output.
+
 > evalkit grew out of **[vram.wiki](https://vram.wiki)**, a catalog of what people
 > really do with local LLMs. The catalog, the `/learn` path and this harness share
 > one stance: evidence over benchmarks, failures are the result, and a number is

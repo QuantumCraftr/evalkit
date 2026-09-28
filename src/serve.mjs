@@ -45,6 +45,8 @@ main{padding:34px 0 90px}
 .crumb a{color:var(--muted)}.crumb a:hover{color:var(--accent)}
 h1{font-size:30px;line-height:1.15;font-weight:600;letter-spacing:-.025em;margin:0 0 8px}
 h2{font-size:13px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin:36px 0 14px}
+h2 .h2-note{ text-transform:none;letter-spacing:0;font-weight:400;font-size:12px;color:#5f6b62;margin-left:8px}
+.note{color:var(--muted);font-size:13px;margin:10px 0 0}
 .lead{color:var(--muted);margin:0 0 8px;max-width:640px}
 .meta{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
 .chip{display:inline-flex;align-items:center;gap:7px;border:1px solid var(--border);border-radius:999px;padding:4px 11px;font:12px var(--mono);color:var(--muted);background:var(--panel)}
@@ -152,14 +154,31 @@ function runPage(report) {
   const items = report.items ?? [];
   const rate = s.total ? (s.passed ?? 0) / s.total : 0;
   const meta = report.meta ?? {};
+  const settings = meta.settings ?? {};
+  const perf = meta.performance ?? {};
 
   const chips = [
     `<span class="chip">model <b>${escapeHtml(meta.model ?? "?")}</b></span>`,
     `<span class="chip">endpoint <b>${escapeHtml(meta.baseUrl ?? "?")}</b></span>`,
     meta.hardware ? `<span class="chip">hardware <b>${escapeHtml(meta.hardware)}</b></span>` : "",
-    meta.medianLatencyMs != null ? `<span class="chip">median latency <b>${meta.medianLatencyMs} ms</b></span>` : "",
+    `<span class="chip">temperature <b>${settings.temperature ?? "?"}</b></span>`,
+    `<span class="chip">max tokens <b>${settings.maxTokens ?? "?"}</b></span>`,
+    `<span class="chip">timeout <b>${settings.timeoutMs ?? "?"} ms</b></span>`,
     `<span class="chip">run <b>${escapeHtml(meta.startedAt ?? "?")}</b></span>`,
   ].join("");
+
+  const perfTiles = perf.calls
+    ? `<h2>Performance <span class="h2-note">measured client-side, sequential</span></h2>
+<div class="tiles">
+${tile("Calls", String(perf.calls))}
+${tile("Median latency", perf.medianLatencyMs != null ? `${perf.medianLatencyMs} ms` : "—")}
+${tile("Latency range", perf.minLatencyMs != null ? `${perf.minLatencyMs}–${perf.maxLatencyMs} ms` : "—")}
+${tile("Median decode", perf.medianTokensPerSecond != null ? `${perf.medianTokensPerSecond} tok/s` : "—")}
+${tile("Completion tokens", perf.totalCompletionTokens != null ? String(perf.totalCompletionTokens) : "—")}
+${tile("Median prompt", perf.medianPromptTokens != null ? `${perf.medianPromptTokens} tok` : "—")}
+</div>
+${perf.metered ? "" : `<p class="note">This backend did not report token usage, so rates are a lower bound.</p>`}`
+    : "";
 
   const tagRows = (s.byTag ?? []).map((row) => `<tr><td>${escapeHtml(row.tag)}</td><td class="num">${row.passed}/${row.total}</td><td class="num">${pct(row.total ? row.passed / row.total : 0)}</td><td>${bar(row.total ? row.passed / row.total : 0)}</td></tr>`).join("");
   const checkRows = (s.byCheck ?? []).map((row) => `<tr><td><code>${escapeHtml(row.kind)}</code></td><td class="num">${row.passed}/${row.total}</td><td>${bar(row.total ? row.passed / row.total : 0)}</td></tr>`).join("");
@@ -167,8 +186,14 @@ function runPage(report) {
   const itemBlocks = items.map((item) => {
     const checks = (item.checks ?? []).map((check) => `<div class="check"><span class="cm ${check.passed ? "pass" : "fail"}">${check.passed ? "pass" : "FAIL"}</span><span class="kind">${escapeHtml(check.kind)}</span><span class="detail-t">${escapeHtml(check.detail)}</span></div>`).join("");
     const output = item.output ? `<div class="out-label">Model output</div><pre class="out">${escapeHtml(item.output)}</pre>` : "";
-    const meter = item.meter ? `<div class="chip" style="margin-top:12px">tokens <b>${item.meter.completionTokens ?? "?"}</b> · ${item.meter.tokensPerSecond ?? "?"} tok/s · ${item.meter.elapsedMs ?? "?"} ms</div>` : "";
-    return `<details class="item ${item.passed ? "pass" : "fail"}"><summary><span class="mark">${item.passed ? "✓" : "✗"}</span><span class="id">${escapeHtml(item.id)}</span><span class="tags">${(item.tags ?? []).map((tag) => `<span class="tag-pill">${escapeHtml(tag)}</span>`).join("")}</span><span class="chev">›</span></summary><div class="detail"><div class="checks">${checks}</div>${meter}${output}</div></details>`;
+    const m = item.meter;
+    const meterChips = m ? `<div class="meta" style="margin-top:12px">${[
+      m.elapsedMs != null ? `<span class="chip">latency <b>${m.elapsedMs} ms</b></span>` : "",
+      m.completionTokens != null ? `<span class="chip">completion <b>${m.completionTokens} tok</b></span>` : "",
+      m.promptTokens != null ? `<span class="chip">prompt <b>${m.promptTokens} tok</b></span>` : "",
+      m.tokensPerSecond != null ? `<span class="chip">decode <b>${m.tokensPerSecond} tok/s</b></span>` : "",
+    ].join("")}</div>` : "";
+    return `<details class="item ${item.passed ? "pass" : "fail"}"><summary><span class="mark">${item.passed ? "✓" : "✗"}</span><span class="id">${escapeHtml(item.id)}</span><span class="tags">${(item.tags ?? []).map((tag) => `<span class="tag-pill">${escapeHtml(tag)}</span>`).join("")}</span><span class="chev">›</span></summary><div class="detail"><div class="checks">${checks}</div>${meterChips}${output}</div></details>`;
   }).join("");
 
   const body = `<div class="crumb"><a href="/">← all runs</a></div>
@@ -176,11 +201,14 @@ function runPage(report) {
 <p class="lead">${escapeHtml(report.pack?.name ?? "")} ${escapeHtml(report.pack?.version ?? "")} — fixed dataset and scoring rules. Results are comparable only within this pack version.</p>
 <div class="meta">${chips}</div>
 
-<div class="tiles" style="margin-top:24px">
+<h2>Result</h2>
+<div class="tiles">
 ${tile("Passed", `${s.passed ?? 0} / ${s.total ?? 0}`, (s.failed ?? 0) ? "fail" : "pass")}
 ${tile("Pass rate", pct(rate), rate < 0.5 ? "fail" : "pass")}
 ${tile("Failed", String(s.failed ?? 0), s.failed ? "fail" : "")}
 </div>
+
+${perfTiles}
 
 <div class="grid2">
 <div><h2>By group</h2><table><tr><th>Group</th><th class="num">Pass</th><th class="num">Rate</th><th></th></tr>${tagRows}</table></div>

@@ -36,6 +36,8 @@ export function toMarkdown(report) {
   lines.push(`**Endpoint:** \`${meta.baseUrl}\`  `);
   lines.push(`**Run:** ${meta.startedAt}  `);
   if (meta.hardware) lines.push(`**Hardware:** ${meta.hardware}  `);
+  const settings = meta.settings;
+  if (settings) lines.push(`**Settings:** temperature ${settings.temperature}, max tokens ${settings.maxTokens}, timeout ${settings.timeoutMs}ms  `);
   lines.push("");
   lines.push(`## Result`);
   lines.push("");
@@ -51,6 +53,23 @@ export function toMarkdown(report) {
     lines.push(`| Check | Passed | Total |`);
     lines.push(`|---|---|---|`);
     for (const row of summary.byCheck) lines.push(`| ${row.kind} | ${row.passed} | ${row.total} |`);
+    lines.push("");
+  }
+  const perf = meta.performance;
+  if (perf && perf.calls) {
+    lines.push(`## Performance`);
+    lines.push("");
+    lines.push(`Measured client-side, one call per item, sequential.`);
+    lines.push("");
+    lines.push(`| Metric | Value |`);
+    lines.push(`|---|---|`);
+    lines.push(`| Calls | ${perf.calls} |`);
+    if (perf.medianLatencyMs != null) lines.push(`| Median latency | ${perf.medianLatencyMs} ms |`);
+    if (perf.minLatencyMs != null && perf.maxLatencyMs != null) lines.push(`| Latency range | ${perf.minLatencyMs}–${perf.maxLatencyMs} ms |`);
+    if (perf.medianTokensPerSecond != null) lines.push(`| Median decode rate | ${perf.medianTokensPerSecond} tok/s |`);
+    if (perf.totalCompletionTokens != null) lines.push(`| Completion tokens | ${perf.totalCompletionTokens} (median ${perf.medianCompletionTokens}/item) |`);
+    if (perf.medianPromptTokens != null) lines.push(`| Median prompt tokens | ${perf.medianPromptTokens} |`);
+    if (!perf.metered) lines.push(`| Token counts | not reported by this backend (rates are a lower bound) |`);
     lines.push("");
   }
   if (summary.failures.length) {

@@ -27,7 +27,9 @@ test("runPack scores every item and records a failed call as a failed item", asy
   assert.equal(report.summary.total, 8);
   assert.equal(report.items.length, 8);
   assert.equal(report.meta.errors.length, 0);
-  assert.ok(report.meta.medianLatencyMs >= 0);
+  assert.ok(report.meta.performance.medianLatencyMs >= 0);
+  assert.equal(report.meta.settings.temperature, 0);
+  assert.equal(report.meta.performance.calls, 8);
 });
 
 test("runPack marks an HTTP error as a failed call, never a skip", async () => {
@@ -44,4 +46,17 @@ test("the Markdown report carries the caveats and the failures", async () => {
   assert.match(markdown, /## Caveats/);
   assert.match(markdown, /One run per item/);
   assert.match(markdown, /## Failures/);
+});
+
+test("the report records the settings and the performance block", async () => {
+  const report = await runPack(pack, options, fakeFetch(() => "I will call you back after checking availability."));
+  assert.equal(report.meta.settings.temperature, 0);
+  assert.equal(report.meta.settings.maxTokens, 64);
+  assert.equal(report.meta.settings.timeoutMs, 1000);
+  assert.equal(report.meta.performance.calls, 8);
+  assert.ok(report.meta.performance.medianLatencyMs >= 0);
+  assert.ok(report.meta.performance.medianTokensPerSecond > 0);
+  const markdown = toMarkdown(report);
+  assert.match(markdown, /## Performance/);
+  assert.match(markdown, /Median decode rate/);
 });

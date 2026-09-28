@@ -7,7 +7,7 @@ import { serveRuns } from "../src/serve.mjs";
 
 const sampleReport = {
   pack: { name: "demo", version: "v1", title: "Demo pack" },
-  meta: { model: "test-model", baseUrl: "http://x/v1", startedAt: "2026-09-28T00:00:00Z", hardware: "rig", medianLatencyMs: 5 },
+  meta: { model: "test-model", baseUrl: "http://x/v1", startedAt: "2026-09-28T00:00:00Z", hardware: "rig", settings: { temperature: 0, maxTokens: 64, timeoutMs: 1000 }, performance: { calls: 1, medianLatencyMs: 5, minLatencyMs: 5, maxLatencyMs: 5, medianTokensPerSecond: 10, totalCompletionTokens: 20, medianCompletionTokens: 20, medianPromptTokens: 10, metered: true } },
   summary: { total: 2, passed: 1, failed: 1, passRate: 0.5, byCheck: [{ kind: "regex", total: 2, passed: 1 }], byTag: [{ tag: "guardrail", total: 2, passed: 1 }], failures: [] },
   items: [{ id: "a", tags: ["guardrail"], passed: true, checks: [{ kind: "regex", passed: true, detail: "matched" }], output: "ok" }],
   caveats: ["One run per item."],

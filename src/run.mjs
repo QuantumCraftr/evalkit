@@ -8,9 +8,11 @@ import { buildReport } from "./report.mjs";
 
 export async function runPack(pack, options, fetchImpl = fetch) {
   const startedAt = new Date().toISOString();
+  const startedMs = Date.now();
   const scored = [];
   const errors = [];
   const latencies = [];
+  const meters = [];
   for (const item of pack.items) {
     const result = await callModel({ baseUrl: options.baseUrl, model: options.model, input: item.input, system: item.system, apiKey: options.apiKey, maxTokens: options.maxTokens, temperature: options.temperature, timeoutMs: options.timeoutMs }, fetchImpl);
     if (!result.ok) {
@@ -20,6 +22,7 @@ export async function runPack(pack, options, fetchImpl = fetch) {
       continue;
     }
     if (result.meter.elapsedMs) latencies.push(result.meter.elapsedMs);
+    meters.push(result.meter);
     scored.push({ ...scoreItem(item, result.output, pack.manifest.scoring), output: result.output, meter: result.meter });
   }
   const report = buildReport({
@@ -31,11 +34,37 @@ export async function runPack(pack, options, fetchImpl = fetch) {
       startedAt,
       items: pack.items.length,
       errors,
-      medianLatencyMs: median(latencies),
+      wallClockMs: Date.now() - startedMs,
+      settings: {
+        temperature: options.temperature,
+        maxTokens: options.maxTokens,
+        timeoutMs: options.timeoutMs,
+        streamed: false,
+      },
+      performance: performanceOf(meters),
     },
     scored,
   });
   return report;
+}
+
+/** Aggregate the per-item meters. Medians, not means: a single slow call must not skew the picture. */
+export function performanceOf(meters) {
+  const latencies = meters.map((m) => m.elapsedMs).filter((value) => typeof value === "number" && value > 0);
+  const speeds = meters.map((m) => m.tokensPerSecond).filter((value) => typeof value === "number" && value > 0);
+  const completion = meters.map((m) => m.completionTokens).filter((value) => typeof value === "number");
+  const prompt = meters.map((m) => m.promptTokens).filter((value) => typeof value === "number");
+  return {
+    calls: meters.length,
+    medianLatencyMs: median(latencies),
+    maxLatencyMs: latencies.length ? Math.max(...latencies) : null,
+    minLatencyMs: latencies.length ? Math.min(...latencies) : null,
+    medianTokensPerSecond: median(speeds),
+    totalCompletionTokens: completion.reduce((sum, value) => sum + value, 0) || null,
+    medianCompletionTokens: median(completion),
+    medianPromptTokens: median(prompt),
+    metered: meters.some((m) => m.completionTokens !== null),
+  };
 }
 
 function median(values) {
