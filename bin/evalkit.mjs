@@ -30,6 +30,9 @@ Options:
   --max-tokens <n>     max tokens per answer (default 1024)
   --timeout-ms <n>     per-call timeout (default 120000)
   --hardware <text>    free-text hardware note recorded in the report
+  --quant <text>       declared quantization (e.g. Q4_K_M), recorded not inferred
+  --context <text>     declared context window (e.g. 32768), recorded not inferred
+  --kv <text>          declared KV cache type (e.g. q8_0), recorded not inferred
   --stream             stream the response to measure TTFT (default)
   --no-stream          single response; TTFT is not measurable
   --json               print the JSON report instead of Markdown
@@ -62,6 +65,8 @@ function validate(path) {
 async function run(argv) {
   const { errors, options, packDir } = parseRunArgs(argv);
   if (errors.length) { console.error(`Argument error:\n  ${errors.join("\n  ")}`); return 2; }
+  // Record the exact command, so a report can be reproduced without guessing.
+  options.command = `evalkit ${process.argv.slice(2).join(" ")}`;
   const loaded = loadPack(resolve(packDir));
   if (!loaded.ok) { console.error(`Invalid pack:\n  ${loaded.errors.join("\n  ")}`); return 1; }
   const pack = loaded.pack;

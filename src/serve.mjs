@@ -161,11 +161,18 @@ function runPage(report) {
     `<span class="chip">model <b>${escapeHtml(meta.model ?? "?")}</b></span>`,
     `<span class="chip">endpoint <b>${escapeHtml(meta.baseUrl ?? "?")}</b></span>`,
     meta.hardware ? `<span class="chip">hardware <b>${escapeHtml(meta.hardware)}</b></span>` : "",
+    settings.quant ? `<span class="chip">quant <b>${escapeHtml(settings.quant)}</b></span>` : "",
+    settings.context ? `<span class="chip">context <b>${escapeHtml(settings.context)}</b></span>` : "",
+    settings.kv ? `<span class="chip">kv cache <b>${escapeHtml(settings.kv)}</b></span>` : "",
     `<span class="chip">temperature <b>${settings.temperature ?? "?"}</b></span>`,
     `<span class="chip">max tokens <b>${settings.maxTokens ?? "?"}</b></span>`,
     `<span class="chip">timeout <b>${settings.timeoutMs ?? "?"} ms</b></span>`,
     `<span class="chip">run <b>${escapeHtml(meta.startedAt ?? "?")}</b></span>`,
   ].join("");
+
+  const commandBlock = meta.command
+    ? `<h2>Command</h2><pre class="out">${escapeHtml(meta.command)}</pre>`
+    : "";
 
   const perfTiles = perf.calls
     ? `<h2>Performance <span class="h2-note">measured client-side, sequential${perf.streamed ? ", streamed" : ", not streamed"}</span></h2>
@@ -205,6 +212,8 @@ ${perf.streamed ? "" : `<p class="note">Not streamed: time to first token cannot
 <h1>${escapeHtml(report.pack?.title ?? "run")}</h1>
 <p class="lead">${escapeHtml(report.pack?.name ?? "")} ${escapeHtml(report.pack?.version ?? "")} — fixed dataset and scoring rules. Results are comparable only within this pack version.</p>
 <div class="meta">${chips}</div>
+
+${commandBlock}
 
 <h2>Result</h2>
 <div class="tiles">

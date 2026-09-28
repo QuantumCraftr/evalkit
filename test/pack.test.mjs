@@ -34,14 +34,19 @@ test("the shipped receptionist pack loads and validates", () => {
 });
 
 test("run args parse flags and require a model", () => {
-  const ok = parseRunArgs(["packs/x", "--model", "qwen", "--temperature", "0.2"]);
+  const ok = parseRunArgs(["packs/x", "--model", "qwen", "--temperature", "0.2", "--quant", "Q4_K_M", "--context", "32768", "--kv", "q8_0"]);
   assert.equal(ok.errors.length, 0);
   assert.equal(ok.options.model, "qwen");
   assert.equal(ok.options.temperature, 0.2);
+  assert.equal(ok.options.quant, "Q4_K_M");
+  assert.equal(ok.options.context, "32768");
+  assert.equal(ok.options.kv, "q8_0");
+  assert.equal(ok.options.stream, true);
   const missing = parseRunArgs(["packs/x"]);
   assert.match(missing.errors.join(" "), /--model is required/);
   const noPack = parseRunArgs(["--model", "qwen"]);
   assert.match(noPack.errors.join(" "), /pack directory/);
   const badFlag = parseRunArgs(["packs/x", "--model", "q", "--nope", "1"]);
   assert.match(badFlag.errors.join(" "), /unknown flag/);
+  assert.equal(parseRunArgs(["packs/x", "--model", "q", "--no-stream"]).options.stream, false);
 });

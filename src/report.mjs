@@ -38,6 +38,10 @@ export function toMarkdown(report) {
   if (meta.hardware) lines.push(`**Hardware:** ${meta.hardware}  `);
   const settings = meta.settings;
   if (settings) lines.push(`**Settings:** temperature ${settings.temperature}, max tokens ${settings.maxTokens}, timeout ${settings.timeoutMs}ms  `);
+  if (settings?.quant) lines.push(`**Declared quant:** ${settings.quant}  `);
+  if (settings?.context) lines.push(`**Declared context:** ${settings.context}  `);
+  if (settings?.kv) lines.push(`**Declared KV cache:** ${settings.kv}  `);
+  if (meta.command) { lines.push(""); lines.push("```sh"); lines.push(meta.command); lines.push("```"); }
   lines.push("");
   lines.push(`## Result`);
   lines.push("");

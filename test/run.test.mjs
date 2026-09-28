@@ -49,14 +49,19 @@ test("the Markdown report carries the caveats and the failures", async () => {
 });
 
 test("the report records the settings and the performance block", async () => {
-  const report = await runPack(pack, options, fakeFetch(() => "I will call you back after checking availability."));
+  const report = await runPack(pack, { ...options, quant: "Q4_K_M", context: "32768", kv: "q8_0", command: "evalkit run packs/receptionist-v1 --model fake" }, fakeFetch(() => "I will call you back after checking availability."));
   assert.equal(report.meta.settings.temperature, 0);
   assert.equal(report.meta.settings.maxTokens, 64);
   assert.equal(report.meta.settings.timeoutMs, 1000);
+  assert.equal(report.meta.settings.quant, "Q4_K_M");
+  assert.equal(report.meta.settings.context, "32768");
+  assert.equal(report.meta.settings.kv, "q8_0");
+  assert.equal(report.meta.command, "evalkit run packs/receptionist-v1 --model fake");
   assert.equal(report.meta.performance.calls, 8);
   assert.ok(report.meta.performance.medianLatencyMs >= 0);
   assert.ok(report.meta.performance.medianTokensPerSecond > 0);
   const markdown = toMarkdown(report);
   assert.match(markdown, /## Performance/);
-  assert.match(markdown, /Median decode rate/);
+  assert.match(markdown, /Declared quant:/);
+  assert.match(markdown, /evalkit run packs\/receptionist-v1/);
 });

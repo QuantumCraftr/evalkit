@@ -40,7 +40,13 @@ export async function runPack(pack, options, fetchImpl = fetch) {
         maxTokens: options.maxTokens,
         timeoutMs: options.timeoutMs,
         streamed: options.stream !== false,
+        // Declared by the user, never inferred: the harness cannot see the
+        // server's quantization or KV setup from an API call.
+        quant: options.quant ?? null,
+        context: options.context ?? null,
+        kv: options.kv ?? null,
       },
+      command: options.command ?? null,
       performance: performanceOf(meters),
     },
     scored,
