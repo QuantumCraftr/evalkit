@@ -1,0 +1,8 @@
+{
+  "name": "dev-spec",
+  "version": "v1",
+  "title": "Coding from a spec: does the model implement what was asked?",
+  "description": "Small, self-contained specs a coding agent must turn into code. Each item pins the required behaviour (signature, edge cases, forbidden shortcuts) and the checks inspect the produced code. This scores the shape and the stated rules of the answer, not execution: it is a fast, low-cost screen, and it says so.",
+  "dataset": "dataset.jsonl",
+  "scoring": "all_checks"
+}

@@ -8,6 +8,7 @@ import { loadPack } from "../src/pack.mjs";
 import { parseRunArgs } from "../src/config.mjs";
 import { runPack } from "../src/run.mjs";
 import { toMarkdown } from "../src/report.mjs";
+import { serveRuns } from "../src/serve.mjs";
 
 const here = dirname(fileURLToPath(import.meta.url));
 const PACKS_DIR = resolve(here, "..", "packs");
@@ -19,6 +20,7 @@ Usage:
   evalkit list
   evalkit validate <pack-dir>
   evalkit run <pack-dir> --model <name> [options]
+  evalkit view [--port <n>]
 
 Options:
   --base-url <url>     OpenAI-compatible base URL (default http://127.0.0.1:8080/v1)
@@ -80,5 +82,15 @@ if (!command || command === "help" || command === "--help" || command === "-h") 
 if (command === "list") process.exit(listPacks());
 if (command === "validate") { if (!rest[0]) { console.error("validate needs a pack directory"); process.exit(2); } process.exit(validate(rest[0])); }
 if (command === "run") process.exit(await run(rest));
+if (command === "view") {
+  const portFlag = rest.indexOf("--port");
+  const port = portFlag >= 0 ? Number(rest[portFlag + 1]) : 4173;
+  if (!Number.isInteger(port) || port < 1 || port > 65535) { console.error("--port must be a valid port number"); process.exit(2); }
+  const runsDir = resolve(process.cwd(), "evalkit-runs");
+  serveRuns({ runsDir, port });
+  console.log(`evalkit view on http://127.0.0.1:${port} (reading ${runsDir})`);
+  console.log("Local only. Press Ctrl+C to stop.");
+  await new Promise(() => {});
+}
 console.error(`Unknown command "${command}".\n\n${usage()}`);
 process.exit(2);

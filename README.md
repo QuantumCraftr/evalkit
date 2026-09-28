@@ -14,6 +14,13 @@ npx evalkit run packs/receptionist-v1 --model qwen3 --base-url http://127.0.0.1:
 That writes `evalkit-runs/<pack>-<timestamp>.json` and `.md`. **Nothing is
 uploaded.** The run stays on your machine until you choose to share it.
 
+> evalkit grew out of **[vram.wiki](https://vram.wiki)**, a catalog of what people
+> really do with local LLMs. The catalog, the `/learn` path and this harness share
+> one stance: evidence over benchmarks, failures are the result, and a number is
+> worthless without its limits. evalkit is the tooling side of that; vram.wiki is
+> where the setups live.
+
+
 ## Why another eval tool
 
 Because most eval tools answer "how does this model do on MMLU", and that tells
@@ -111,6 +118,13 @@ npm test
 
 `v0.1`. The pack format may still change; a change is a version bump, and results
 are only comparable within a pack version.
+
+## Links
+
+- **vram.wiki** — the catalog this grew out of: <https://vram.wiki>
+- **Why this exists**, the reading path behind it: <https://vram.wiki/learn>
+- Benchmark method we borrowed from, and credit: [`boxabirds/awesome-local-ai`](https://github.com/boxabirds/awesome-local-ai)
+- Issues and packs: <https://github.com/QuantumCraftr/evalkit/issues>
 
 ## License
 
