@@ -30,6 +30,8 @@ Options:
   --max-tokens <n>     max tokens per answer (default 1024)
   --timeout-ms <n>     per-call timeout (default 120000)
   --hardware <text>    free-text hardware note recorded in the report
+  --stream             stream the response to measure TTFT (default)
+  --no-stream          single response; TTFT is not measurable
   --json               print the JSON report instead of Markdown
 
 The run is written to ./evalkit-runs/<pack>-<timestamp>.json and .md.

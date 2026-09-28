@@ -168,16 +168,19 @@ function runPage(report) {
   ].join("");
 
   const perfTiles = perf.calls
-    ? `<h2>Performance <span class="h2-note">measured client-side, sequential</span></h2>
+    ? `<h2>Performance <span class="h2-note">measured client-side, sequential${perf.streamed ? ", streamed" : ", not streamed"}</span></h2>
 <div class="tiles">
 ${tile("Calls", String(perf.calls))}
 ${tile("Median latency", perf.medianLatencyMs != null ? `${perf.medianLatencyMs} ms` : "—")}
 ${tile("Latency range", perf.minLatencyMs != null ? `${perf.minLatencyMs}–${perf.maxLatencyMs} ms` : "—")}
+${tile("Time to first token", perf.medianTtftMs != null ? `${perf.medianTtftMs} ms` : "n/a")}
 ${tile("Median decode", perf.medianTokensPerSecond != null ? `${perf.medianTokensPerSecond} tok/s` : "—")}
+${tile("Effective rate", perf.medianEffectiveTokensPerSecond != null ? `${perf.medianEffectiveTokensPerSecond} tok/s` : "—")}
 ${tile("Completion tokens", perf.totalCompletionTokens != null ? String(perf.totalCompletionTokens) : "—")}
 ${tile("Median prompt", perf.medianPromptTokens != null ? `${perf.medianPromptTokens} tok` : "—")}
 </div>
-${perf.metered ? "" : `<p class="note">This backend did not report token usage, so rates are a lower bound.</p>`}`
+${perf.metered ? "" : `<p class="note">This backend did not report token usage, so rates are a lower bound.</p>`}
+${perf.streamed ? "" : `<p class="note">Not streamed: time to first token cannot be separated from decode here.</p>`}`
     : "";
 
   const tagRows = (s.byTag ?? []).map((row) => `<tr><td>${escapeHtml(row.tag)}</td><td class="num">${row.passed}/${row.total}</td><td class="num">${pct(row.total ? row.passed / row.total : 0)}</td><td>${bar(row.total ? row.passed / row.total : 0)}</td></tr>`).join("");
@@ -188,10 +191,12 @@ ${perf.metered ? "" : `<p class="note">This backend did not report token usage, 
     const output = item.output ? `<div class="out-label">Model output</div><pre class="out">${escapeHtml(item.output)}</pre>` : "";
     const m = item.meter;
     const meterChips = m ? `<div class="meta" style="margin-top:12px">${[
-      m.elapsedMs != null ? `<span class="chip">latency <b>${m.elapsedMs} ms</b></span>` : "",
+      m.ttftMs != null ? `<span class="chip">first token <b>${m.ttftMs} ms</b></span>` : "",
+      m.elapsedMs != null ? `<span class="chip">total <b>${m.elapsedMs} ms</b></span>` : "",
       m.completionTokens != null ? `<span class="chip">completion <b>${m.completionTokens} tok</b></span>` : "",
       m.promptTokens != null ? `<span class="chip">prompt <b>${m.promptTokens} tok</b></span>` : "",
       m.tokensPerSecond != null ? `<span class="chip">decode <b>${m.tokensPerSecond} tok/s</b></span>` : "",
+      m.effectiveTokensPerSecond != null ? `<span class="chip">effective <b>${m.effectiveTokensPerSecond} tok/s</b></span>` : "",
     ].join("")}</div>` : "";
     return `<details class="item ${item.passed ? "pass" : "fail"}"><summary><span class="mark">${item.passed ? "✓" : "✗"}</span><span class="id">${escapeHtml(item.id)}</span><span class="tags">${(item.tags ?? []).map((tag) => `<span class="tag-pill">${escapeHtml(tag)}</span>`).join("")}</span><span class="chev">›</span></summary><div class="detail"><div class="checks">${checks}</div>${meterChips}${output}</div></details>`;
   }).join("");

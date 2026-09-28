@@ -1,6 +1,6 @@
 // CLI argument parsing. Pure and testable: no I/O, no process.exit here.
 
-const DEFAULTS = { baseUrl: "http://127.0.0.1:8080/v1", model: null, apiKey: "not-needed", temperature: 0, maxTokens: 1024, timeoutMs: 120000, hardware: null, json: false };
+const DEFAULTS = { baseUrl: "http://127.0.0.1:8080/v1", model: null, apiKey: "not-needed", temperature: 0, maxTokens: 1024, timeoutMs: 120000, hardware: null, json: false, stream: true };
 
 /** Parse `evalkit run <pack> [flags]` style argv (already sliced past the command). */
 export function parseRunArgs(argv) {
@@ -22,6 +22,8 @@ export function parseRunArgs(argv) {
       case "timeout-ms": options.timeoutMs = Number(takeValue()); break;
       case "hardware": options.hardware = takeValue(); break;
       case "json": options.json = true; break;
+      case "stream": options.stream = true; break;
+      case "no-stream": options.stream = false; break;
       default: errors.push(`unknown flag --${key}`);
     }
   }

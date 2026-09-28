@@ -14,7 +14,7 @@ export async function runPack(pack, options, fetchImpl = fetch) {
   const latencies = [];
   const meters = [];
   for (const item of pack.items) {
-    const result = await callModel({ baseUrl: options.baseUrl, model: options.model, input: item.input, system: item.system, apiKey: options.apiKey, maxTokens: options.maxTokens, temperature: options.temperature, timeoutMs: options.timeoutMs }, fetchImpl);
+    const result = await callModel({ baseUrl: options.baseUrl, model: options.model, input: item.input, system: item.system, apiKey: options.apiKey, maxTokens: options.maxTokens, temperature: options.temperature, timeoutMs: options.timeoutMs, stream: options.stream }, fetchImpl);
     if (!result.ok) {
       errors.push({ id: item.id, error: result.error });
       // A failed call is a failed item with a clear reason, not a silent skip.
@@ -39,7 +39,7 @@ export async function runPack(pack, options, fetchImpl = fetch) {
         temperature: options.temperature,
         maxTokens: options.maxTokens,
         timeoutMs: options.timeoutMs,
-        streamed: false,
+        streamed: options.stream !== false,
       },
       performance: performanceOf(meters),
     },
@@ -52,14 +52,19 @@ export async function runPack(pack, options, fetchImpl = fetch) {
 export function performanceOf(meters) {
   const latencies = meters.map((m) => m.elapsedMs).filter((value) => typeof value === "number" && value > 0);
   const speeds = meters.map((m) => m.tokensPerSecond).filter((value) => typeof value === "number" && value > 0);
+  const ttfts = meters.map((m) => m.ttftMs).filter((value) => typeof value === "number" && value > 0);
+  const effective = meters.map((m) => m.effectiveTokensPerSecond).filter((value) => typeof value === "number" && value > 0);
   const completion = meters.map((m) => m.completionTokens).filter((value) => typeof value === "number");
   const prompt = meters.map((m) => m.promptTokens).filter((value) => typeof value === "number");
   return {
     calls: meters.length,
+    streamed: meters.some((m) => m.streamed),
     medianLatencyMs: median(latencies),
     maxLatencyMs: latencies.length ? Math.max(...latencies) : null,
     minLatencyMs: latencies.length ? Math.min(...latencies) : null,
+    medianTtftMs: median(ttfts),
     medianTokensPerSecond: median(speeds),
+    medianEffectiveTokensPerSecond: median(effective),
     totalCompletionTokens: completion.reduce((sum, value) => sum + value, 0) || null,
     medianCompletionTokens: median(completion),
     medianPromptTokens: median(prompt),

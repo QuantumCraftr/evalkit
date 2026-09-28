@@ -15,9 +15,13 @@ That writes `evalkit-runs/<pack>-<timestamp>.json` and `.md`. **Nothing is
 uploaded.** The run stays on your machine until you choose to share it.
 
 Browse the runs with `npx evalkit view`: a local page (binding `127.0.0.1` only)
-that shows the full run settings, a performance block (median latency, decode
-rate, tokens), the results by group and by check, every item with its checks and
-its meter, and the model output.
+that shows the full run settings, a performance block (median latency, time to
+first token, decode rate, tokens), the results by group and by check, every item
+with its checks and its meter, and the model output.
+
+![evalkit runs](./docs/viewer-runs.png)
+
+![evalkit run detail](./docs/viewer-run-detail.png)
 
 > evalkit grew out of **[vram.wiki](https://vram.wiki)**, a catalog of what people
 > really do with local LLMs. The catalog, the `/learn` path and this harness share

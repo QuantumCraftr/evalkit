@@ -64,12 +64,16 @@ export function toMarkdown(report) {
     lines.push(`| Metric | Value |`);
     lines.push(`|---|---|`);
     lines.push(`| Calls | ${perf.calls} |`);
-    if (perf.medianLatencyMs != null) lines.push(`| Median latency | ${perf.medianLatencyMs} ms |`);
+    if (perf.medianLatencyMs != null) lines.push(`| Median total latency | ${perf.medianLatencyMs} ms |`);
     if (perf.minLatencyMs != null && perf.maxLatencyMs != null) lines.push(`| Latency range | ${perf.minLatencyMs}–${perf.maxLatencyMs} ms |`);
+    if (perf.medianTtftMs != null) lines.push(`| Median time to first token | ${perf.medianTtftMs} ms |`);
     if (perf.medianTokensPerSecond != null) lines.push(`| Median decode rate | ${perf.medianTokensPerSecond} tok/s |`);
+    if (perf.medianEffectiveTokensPerSecond != null) lines.push(`| Median effective rate | ${perf.medianEffectiveTokensPerSecond} tok/s (completion / total time) |`);
     if (perf.totalCompletionTokens != null) lines.push(`| Completion tokens | ${perf.totalCompletionTokens} (median ${perf.medianCompletionTokens}/item) |`);
     if (perf.medianPromptTokens != null) lines.push(`| Median prompt tokens | ${perf.medianPromptTokens} |`);
     if (!perf.metered) lines.push(`| Token counts | not reported by this backend (rates are a lower bound) |`);
+    lines.push("");
+    if (!perf.streamed) lines.push(`Without streaming, TTFT cannot be separated from decode; only total latency is reported.`);
     lines.push("");
   }
   if (summary.failures.length) {
